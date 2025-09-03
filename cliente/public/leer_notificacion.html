@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Consultar Notificación</title>
+</head>
+
+<body>
+  <h1>Consultar estado de notificación</h1>
+  <input type="text" id="idNotificacion" placeholder="ID de la notificación">
+  <button onclick="consultarNotificacion()">Consultar</button>
+  <p id="resultado"></p>
+
+  <script>
+    async function consultarNotificacion() {
+      const id = document.getElementById("idNotificacion").value.trim();
+      const resultado = document.getElementById("resultado");
+
+      if (!id) {
+        resultado.textContent = "Por favor ingresa un ID válido.";
+        return;
+      }
+
+      try {
+        const respuesta = await fetch(`http://localhost:4001/api/v1/notificacion/detalle/${id}`);
+
+        if (!respuesta.ok) {
+          resultado.textContent = `Error en la solicitud: ${respuesta.status}`;
+          return;
+        }
+
+        const data = await respuesta.json();
+
+        // Si tu API devuelve un arreglo, extraemos el primer elemento
+        const notificacion = Array.isArray(data) ? data[0] : data;
+
+        // Si devuelve un objeto con notificacion: [ ... ]
+        const lectura = notificacion?.lectura ?? notificacion?.notificacion?.[0]?.lectura;
+
+        if (lectura === true) {
+          resultado.textContent = `✅ Notificación leída por logística.`;
+        } else {
+          resultado.textContent = `❌ Notificación aún no leída.`;
+        }
+      } catch (error) {
+        console.error("Error de conexión:", error);
+        resultado.textContent = "Error al conectar con el servidor.";
+      }
+    }
+  </script>
+</body>
+
+</html>

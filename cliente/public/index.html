@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Notificaciones por Usuario</title>
+</head>
+<body>
+  <h1>Notificaciones</h1>
+  <input type="text" id="usuario" placeholder="Tu correo" readonly>
+
+  <h2>Enviar notificación</h2>
+  <input type="text" id="usuarioTo" placeholder="Correo destinatario">
+  <input type="number" id="montoTo" placeholder="Monto total">
+  <input type="text" id="mensajeTo" placeholder="Mensaje">
+  <button onclick="fnEnviar()">Enviar</button>
+
+  <h2>Recibidas</h2>
+  <ul id="lista"></ul>
+
+  <script>
+    // Pregunta el correo de la ventana actual
+    const usuario = prompt("Ingresa tu correo:");
+    document.getElementById("usuario").value = usuario;
+
+    // Canal de comunicación entre ventanas
+    const canal = new BroadcastChannel("notificaciones");
+
+    // Escuchar notificaciones solo si son para este usuario
+    canal.onmessage = (event) => {
+      const notificacion = event.data;
+      if (notificacion.email === usuario) {
+        agregarNotificacion(notificacion);
+      }
+    };
+
+    // Función para enviar notificación
+    async function fnEnviar() {
+      const email = document.getElementById("usuarioTo").value.trim();
+      const monto_total = document.getElementById("montoTo").value.trim();
+      const mensaje = document.getElementById("mensajeTo").value.trim();
+
+      if (!email || !monto_total || !mensaje) {
+        alert("Completa todos los campos");
+        return;
+      }
+
+      // Validar que el correo destinatario exista
+      const valido = await validarCorreo(email);
+      if (!valido) {
+        alert("El correo destinatario no existe en la base de datos");
+        return;
+      }
+
+      // Crear la notificación
+      const notificacion = {
+        email, // destinatario
+        monto_total,
+        mensaje,
+        fecha_registro: new Date()
+      };
+
+      // Enviar la notificación solo al destinatario
+      canal.postMessage(notificacion);
+
+      // Limpiar los campos
+      document.getElementById("usuarioTo").value = "";
+      document.getElementById("montoTo").value = "";
+      document.getElementById("mensajeTo").value = "";
+    }
+
+    // Validar correo contra la base de datos
+    async function validarCorreo(email) {
+      try {
+        const res = await fetch(`http://localhost:4001/api/v1/notificacion/${email}`);
+        if (!res.ok) return false;
+        const data = await res.json();
+        return Array.isArray(data) && data.length > 0;
+      } catch (error) {
+        console.error("Error validando correo:", error);
+        return false;
+      }
+    }
+
+    // Agregar notificación a la lista
+    function agregarNotificacion(notificacion) {
+      const list = document.getElementById("lista");
+      const item = document.createElement("li");
+      const fecha = new Date(notificacion.fecha_registro).toLocaleString();
+      item.textContent = `Pedido: ${notificacion.monto_total} - Mensaje: ${notificacion.mensaje} (${fecha})`;
+      list.prepend(item);
+    }
+  </script>
+</body>
+</html>

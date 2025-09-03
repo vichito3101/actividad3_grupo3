@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Notificaciones online x usuario</title>
+  <script
+      src="https://cdn.socket.io/4.5.0/socket.io.min.js"
+      integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k"
+      crossorigin="anonymous"
+    ></script>
+</head>
+<body>
+  <h1>Notificaciones</h1>
+  <input type="text" id="usuario" placeholder="Usuario" readonly>
+
+  <img src="qr.jpg">
+  
+  <h1>Escribir a:</h1>
+  <input type="text" id="usuarioTo" placeholder="A quien">
+  <input type="text" id="mensajeTo" placeholder="Mensaje">
+  <button onclick="javascript:fnEscribirA()">Enviar</button>
+  
+  <ul id="lista"></ul>
+
+  <!--script src="/socket.io/socket.io.js"></script-->
+  <script>
+    const socket = io("http://localhost:4001");
+    //const socket = io("https://4672-38-25-51-60.ngrok-free.app");
+    const usuario = prompt("Ingresa tu usuario");
+    document.getElementById("usuario").value=usuario;
+    
+    socket.emit("matriculado", usuario);
+
+    socket.on("nuevaNotificacion", (notificacion) => {
+      const list = document.getElementById("lista");
+      const item = document.createElement("li");
+      item.textContent = `${notificacion.mensaje} (${new Date(notificacion.fecha_registro).toLocaleTimeString()})`;
+      list.prepend(item);
+    });
+
+    
+    function fnEscribirA(){
+      const email = document.getElementById("usuarioTo").value;
+      const mensaje = document.getElementById("mensajeTo").value;
+      fetch("http://localhost:4001/api/v1/notificacion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, mensaje }),
+      });
+    }
+
+  </script>
+</body>
+</html>

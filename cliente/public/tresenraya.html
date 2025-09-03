@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tres en raya</title>
+  <script
+      src="https://cdn.socket.io/4.5.0/socket.io.min.js"
+      integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k"
+      crossorigin="anonymous"
+    ></script>
+</head>
+<body>
+  <h1>Jugador:</h1>
+  <input type="text" id="usuario" placeholder="Usuario" readonly>
+
+  <table>
+    <tr>
+      <td><input type="text" name="raya" onkeyup="javascript:fnTresEnRaya()"></td>
+      <td><input type="text" name="raya" onkeyup="javascript:fnTresEnRaya()"></td>
+      <td><input type="text" name="raya" onkeyup="javascript:fnTresEnRaya()"></td>
+    </tr>
+    <tr>
+      <td><input type="text" name="raya" onkeyup="javascript:fnTresEnRaya()"></td>
+      <td><input type="text" name="raya" onkeyup="javascript:fnTresEnRaya()"></td>
+      <td><input type="text" name="raya" onkeyup="javascript:fnTresEnRaya()"></td>
+    </tr>
+    <tr>
+      <td><input type="text" name="raya" onkeyup="javascript:fnTresEnRaya()"></td>
+      <td><input type="text" name="raya" onkeyup="javascript:fnTresEnRaya()"></td>
+      <td><input type="text" name="raya" onkeyup="javascript:fnTresEnRaya()"></td>
+    </tr>
+  </table>
+  <button onclick="javascript:fnTresEnRaya()">Enviar</button>
+  
+  <!--script src="/socket.io/socket.io.js"></script-->
+  <script>
+    const socket = io("http://localhost:4001");
+    const usuario = prompt("Ingresa tu usuario");
+    document.getElementById("usuario").value=usuario;    
+    socket.emit("matriculado", usuario);
+
+    socket.on("notificacion", (datoJuego) => {
+      console.log(datoJuego);
+      const arrRaya = document.getElementsByName("raya");
+      let arrDatoJuego=datoJuego.split(",");
+      for(i=0 ; i<arrRaya.length ; i++){
+        arrRaya[i].value=arrDatoJuego[i];
+      }
+    });
+
+    function fnTresEnRaya(){
+      let datoJuego="";
+      const arrRaya = document.getElementsByName("raya");
+      for(i=0 ; i<arrRaya.length ; i++){
+        if(datoJuego!="")
+          datoJuego=datoJuego+",";
+        datoJuego=datoJuego+arrRaya[i].value;
+      }
+      socket.emit("tresenraya", datoJuego);
+    }
+  </script>
+</body>
+</html>
